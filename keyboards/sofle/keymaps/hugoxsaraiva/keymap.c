@@ -392,6 +392,31 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 }
             }
             return false;
+        case KC_PSCR: {
+            uint8_t mod = 0;
+            if (detected_host_os() == OS_MACOS) {
+                mod = MOD_LSFT;
+                if (keymap_config.swap_lctl_lgui) {
+                    mod |= MOD_LCTL;
+                } else {
+                    mod |= MOD_LGUI;
+                }
+            }
+            
+            uint16_t code = (detected_host_os() == OS_MACOS) ? KC_4 : KC_PSCR;
+            if (record->event.pressed) {
+                if (mod) {
+                    register_mods(mod_config(mod));
+                }
+                register_code(code);
+            } else {
+                unregister_code(code);
+                if (mod){
+                    unregister_mods(mod_config(mod));
+                }
+            }
+            return false;
+        }
     }
     return true;
 }
