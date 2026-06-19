@@ -19,6 +19,38 @@ enum custom_keycodes {
 
 #define KC_QWERTY PDF(_QWERTY)
 
+#ifdef RGB_MATRIX_ENABLE
+static uint8_t layer_hue(uint8_t layer) {
+    switch (layer) {
+        case _LOWER:
+            return 170;
+        case _RAISE:
+            return 128;
+        case _ADJUST:
+            return 191;
+        default:
+            return 0;
+    }
+}
+
+static void set_layer_color(uint8_t layer) {
+    rgb_matrix_enable_noeeprom();
+    rgb_matrix_mode_noeeprom(RGB_MATRIX_SOLID_COLOR);
+    rgb_matrix_sethsv_noeeprom(layer_hue(layer), 255, RGB_MATRIX_MAXIMUM_BRIGHTNESS);
+}
+
+bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
+    hsv_t hsv = rgb_matrix_get_hsv();
+    hsv.v = INDICATOR_BRIGHTNESS;
+    rgb_t rgb = hsv_to_rgb(hsv);
+
+    RGB_MATRIX_INDICATOR_SET_COLOR(0, rgb.r, rgb.g, rgb.b);
+    RGB_MATRIX_INDICATOR_SET_COLOR(36, rgb.r, rgb.g, rgb.b);
+
+    return false;
+}
+#endif
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 /*
  * QWERTY
@@ -105,9 +137,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|------+-------+--------+--------+--------+------|                   |--------+-------+--------+--------+--------+---------|
   QK_BOOT, XXXXXXX, CG_TOGG, XXXXXXX, XXXXXXX, XXXXXXX,                    XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|------+-------+--------+--------+--------+------|                   |--------+-------+--------+--------+--------+---------|
-  UG_TOGG, UG_HUEU,UG_SATU, UG_VALU, XXXXXXX, XXXXXXX,             C(G(KC_LEFT)),KC_NO,KC_NO,C(G(KC_RGHT)),XXXXXXX, XXXXXXX,
+   RM_TOGG, RM_HUEU,RM_SATU, RM_VALU, XXXXXXX, XXXXXXX,             C(G(KC_LEFT)),KC_NO,KC_NO,C(G(KC_RGHT)),XXXXXXX, XXXXXXX,
   //|------+-------+--------+--------+--------+------|  ===  |   |  ===  |--------+-------+--------+--------+--------+---------|
-  UG_NEXT, UG_HUED,UG_SATD, UG_VALD, XXXXXXX,KC_QWERTY,XXXXXXX,   XXXXXXX, XXXXXXX, KC_MPRV, KC_MPLY, KC_MNXT, XXXXXXX, XXXXXXX,
+   RM_NEXT, RM_HUED,RM_SATD, RM_VALD, XXXXXXX,KC_QWERTY,XXXXXXX,   XXXXXXX, XXXXXXX, KC_MPRV, KC_MPLY, KC_MNXT, XXXXXXX, XXXXXXX,
   //|------+-------+--------+--------+--------+------|  ===  |   |  ===  |--------+-------+--------+--------+--------+---------|
                    _______, _______, _______, _______, _______,     _______, _______, _______, _______, _______
     //            \--------+--------+--------+---------+-------|   |--------+---------+--------+---------+-------/
@@ -115,6 +147,16 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 void keyboard_post_init_user(void) {
+#ifdef RGB_MATRIX_ENABLE
+    set_layer_color(get_highest_layer(layer_state));
+#endif
+}
+
+layer_state_t layer_state_set_user(layer_state_t state) {
+#ifdef RGB_MATRIX_ENABLE
+    set_layer_color(get_highest_layer(state));
+#endif
+    return state;
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {

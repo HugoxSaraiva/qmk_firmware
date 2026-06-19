@@ -10,3 +10,9 @@
 /* Select hand configuration */
 #define EE_HANDS
 #define SPLIT_USB_DETECT
+
+/* Prevent RGB current spikes from resetting the board */
+#define RGB_MATRIX_MAXIMUM_BRIGHTNESS 150
+#define RGB_MATRIX_DEFAULT_VAL 150
+
+#define INDICATOR_BRIGHTNESS 30
